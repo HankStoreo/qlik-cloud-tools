@@ -1,0 +1,21 @@
+{
+  "name": "qlik-cloud-tools",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Small read-first command-line tools for running a Qlik Cloud tenant, built on qlik-cli. No runtime dependencies.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "packageManager": "npm@11.17.0",
+  "scripts": {
+    "test": "node --test \"tests/**/*.test.mjs\"",
+    "schedules": "node tools/schedules.mjs"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.6.9",
+    "@types/node": "22.20.7",
+    "typescript": "7.0.2"
+  }
+}

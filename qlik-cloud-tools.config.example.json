@@ -1,0 +1,8 @@
+{
+  "timeZone": "Europe/Paris",
+  "defaultTenant": "prod",
+  "tenants": {
+    "prod": { "context": "my-tenant" },
+    "test": { "context": "my-test-tenant", "timeZone": "America/New_York" }
+  }
+}

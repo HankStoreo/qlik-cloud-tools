@@ -1,0 +1,2 @@
+#!/bin/sh
+exec sh tooling/check-trailers.sh "$1"

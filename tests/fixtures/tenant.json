@@ -1,0 +1,119 @@
+{
+  "spaces": [
+    { "id": "sp-fin", "name": "Finance", "type": "shared" },
+    { "id": "sp-ops", "name": "Operations", "type": "managed" }
+  ],
+  "items": [
+    {
+      "name": "Revenue",
+      "spaceId": "sp-fin",
+      "resourceAttributes": { "id": "app-rev", "lastReloadTime": "2026-03-02T05:01:10Z" }
+    },
+    {
+      "name": "Margin",
+      "spaceId": "sp-fin",
+      "resourceAttributes": { "id": "app-mar", "lastReloadTime": "2026-03-02T05:09:00Z" }
+    },
+    {
+      "name": "Stock",
+      "spaceId": "sp-ops",
+      "resourceAttributes": { "id": "app-stk", "lastReloadTime": "2026-03-01T22:00:00Z" }
+    },
+    {
+      "name": "Rota",
+      "spaceId": "sp-ops",
+      "resourceAttributes": { "id": "app-rot", "lastReloadTime": "2026-02-27T14:30:00Z" }
+    },
+    { "name": "Sandbox", "spaceId": "", "resourceAttributes": { "id": "app-sbx", "lastReloadTime": null } },
+    { "name": "Orphan", "spaceId": "sp-gone", "resourceAttributes": { "id": "app-orp", "lastReloadTime": null } }
+  ],
+  "tasks": [
+    {
+      "id": "t-rev",
+      "name": "Revenue nightly",
+      "resourceId": "app-rev",
+      "enabled": true,
+      "start": {
+        "schedule": { "recurrence": "RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR;BYHOUR=5;BYMINUTE=0", "timezone": "UTC" }
+      },
+      "metadata": {
+        "createdAt": "2026-01-05T09:00:00Z",
+        "orchestration": {
+          "attrs": { "next_run_at": "2026-03-03T05:00:00Z" },
+          "lastRun": {
+            "startedAt": "2026-03-02T05:00:02Z",
+            "endedAt": "2026-03-02T05:01:10Z",
+            "status": "succeeded",
+            "triggeredBy": "schedule"
+          }
+        }
+      }
+    },
+    {
+      "id": "t-mar",
+      "name": "Margin after Revenue",
+      "resourceId": "app-mar",
+      "enabled": true,
+      "events": [
+        {
+          "correlation": [
+            { "contextAttributeName": "id", "contextAttributeValue": "t-rev" },
+            { "contextAttributeName": "status", "contextAttributeValue": "succeeded" }
+          ]
+        }
+      ],
+      "metadata": {
+        "topology": { "isChild": true },
+        "orchestration": { "attrs": { "next_run_at": "Revenue nightly" } }
+      }
+    },
+    {
+      "id": "t-stk",
+      "name": "Stock hourly",
+      "resourceId": "app-stk",
+      "enabled": true,
+      "start": {
+        "schedule": { "recurrence": "RRULE:FREQ=HOURLY;INTERVAL=2;BYMINUTE=15", "timezone": "America/New_York" }
+      },
+      "metadata": { "orchestration": { "attrs": { "next_run_at": "2026-03-02T00:15:00Z" } } }
+    },
+    {
+      "id": "t-rot",
+      "name": "Rota Saturday",
+      "resourceId": "app-rot",
+      "enabled": false,
+      "start": { "schedule": { "recurrence": "RRULE:FREQ=WEEKLY;BYDAY=SA;BYHOUR=9;BYMINUTE=30", "timezone": "UTC" } },
+      "metadata": {}
+    }
+  ],
+  "reloads": [
+    {
+      "appId": "app-mar",
+      "type": "choreographer",
+      "status": "SUCCEEDED",
+      "creationTime": "2026-03-02T05:09:00Z",
+      "startTime": "2026-03-02T05:08:00Z"
+    },
+    {
+      "appId": "app-rev",
+      "type": "choreographer",
+      "status": "SUCCEEDED",
+      "creationTime": "2026-03-02T05:01:10Z",
+      "startTime": "2026-03-02T05:00:02Z"
+    },
+    {
+      "appId": "app-stk",
+      "type": "external",
+      "status": "FAILED",
+      "creationTime": "2026-03-01T22:00:00Z",
+      "startTime": "2026-03-01T21:59:00Z"
+    },
+    {
+      "appId": "app-rev",
+      "type": "hub",
+      "status": "SUCCEEDED",
+      "creationTime": "2026-03-01T12:00:00Z",
+      "startTime": "2026-03-01T11:59:00Z"
+    }
+  ]
+}
