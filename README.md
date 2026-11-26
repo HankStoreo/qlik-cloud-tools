@@ -2,7 +2,7 @@
 
 See what your Qlik Cloud tenant is actually doing, from the command line. One command shows every app's reload schedule, when it runs next, and whether its last reload worked, so failures and unscheduled apps stand out.
 
-![Terminal output of the schedules tool: a table of apps by space with schedule, next run, last reload, result and what started it. One failed reload is red; two apps with no schedule are grey.](docs/media/schedules-demo.png)
+![Typing node tools/schedules.mjs prints a table of apps by space with schedule, next run, last reload, result and what started it. One failed reload is red; two apps with no schedule are grey.](docs/media/schedules.gif)
 
 Small tools built on [qlik-cli](https://qlik.dev/toolkits/qlik-cli/). Read-only tools come first, so you can point them at your own tenant safely. Node 22 or later, no runtime dependencies. The data above is invented: `make demo` reproduces it with no Qlik account.
 
@@ -71,7 +71,7 @@ node tools/schedules.mjs --tenant test    # another tenant from the config
 node tools/schedules.mjs --json           # rows as JSON, each with its app's tasks
 ```
 
-Output, from the demo tenant (the image at the top shows it in colour):
+Output, from the demo tenant (the video at the top shows it in colour):
 
 ```text
 Space       App      Schedule                             Next run         Last reload       Result     By
