@@ -1,6 +1,6 @@
 {
   "name": "qlik-cloud-tools",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Small read-first command-line tools for running a Qlik Cloud tenant, built on qlik-cli. No runtime dependencies.",
   "license": "MIT",

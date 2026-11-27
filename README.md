@@ -63,7 +63,7 @@ Then point it at your own tenant:
 
 ## Schedules
 
-Every app in the tenant with its reload schedule, next run and last reload, in one table. Read-only: it makes four list calls (spaces, apps, tasks, reloads) and changes nothing.
+Every app in the tenant with its reload schedule, next run and last reload, in one table. Read-only: it reads four lists (spaces, apps, tasks, reloads), every page of each, and changes nothing.
 
 ```sh
 node tools/schedules.mjs                  # default tenant, as a table
@@ -94,11 +94,11 @@ How to read it:
 - **By** says what started the last reload: `task`, `browser` (the reload button) or `API` (including qlik-cli). `unrecorded` means the app has a reload time but no entry in the reload history: a reload from the data load editor, or one older than the history.
 - A **space shown as an ID** is one your API key can't see.
 
-Schedules come from the tasks API (`/api/v1/tasks`). The older reload-tasks endpoint is deprecated and returns nothing on current tenants.
+Schedules come from Qlik's Scheduling Tasks API (`/api/scheduling/tasks`), which superseded the tasks API (`/api/v1/tasks`). The older reload-tasks endpoint is deprecated and returns nothing on current tenants.
 
 `--json` gives one object per app (`space`, `spaceType`, `app`, `id`, `schedule`, `nextRun`, `lastReload`, `lastStatus`, `lastBy`, and `tasks` with each task's recurrence, parent and last run), for other tools to read.
 
-**Limits.** One page of each list: up to 100 spaces, 200 apps, 100 tasks and the 100 most recent reloads. An app whose last reload is older than that shows as `unrecorded`. An app with more than one task shows its first task's schedule; `--json` lists them all.
+**Limits.** Each list is read to its last page, 100 records a call, so a large tenant takes more calls but no app is missed. An app whose last reload is older than the tenant's reload history shows as `unrecorded`. An app with more than one task shows its first task's schedule; `--json` lists them all.
 
 ## Repo map
 
