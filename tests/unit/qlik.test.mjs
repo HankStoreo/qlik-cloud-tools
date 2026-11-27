@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
-import { createQlik } from '../../src/qlik.mjs'
+import { createQlik, nextPage, queryArgs } from '../../src/qlik.mjs'
 
 describe('createQlik', () => {
   it('runs every call against the named context', () => {
@@ -43,5 +43,52 @@ describe('createQlik', () => {
   })
   it('rejects output that is not JSON', () => {
     assert.throws(() => createQlik({ context: 'c', exec: () => 'oops' }).json('x'), /did not return JSON/)
+  })
+
+  it('follows every next link and sends its cursor back as given', () => {
+    const seen = []
+    const answers = [
+      { data: [1, 2], links: { next: { href: 'https://tenant.example/api/v1/reloads?limit=2&next=abc' } } },
+      { data: [3], links: { next: { href: '/api/v1/reloads?limit=2&next=def' } } },
+      { data: [4], links: { self: { href: 'x' } } },
+    ]
+    const qlik = createQlik({
+      context: 'c',
+      exec: (_f, a) => {
+        seen.push(a.slice(2).join(' '))
+        return JSON.stringify(answers[seen.length - 1])
+      },
+    })
+    assert.deepEqual(qlik.all('v1/reloads', { limit: '2' }), [1, 2, 3, 4])
+    assert.deepEqual(seen, [
+      'raw get v1/reloads --raw --query limit=2',
+      'raw get v1/reloads --raw --query limit=2 --query next=abc',
+      'raw get v1/reloads --raw --query limit=2 --query next=def',
+    ])
+  })
+  it('reads a bare array or an empty page as the last page', () => {
+    assert.deepEqual(createQlik({ context: 'c', exec: () => '[5]' }).all('x'), [5])
+    assert.deepEqual(createQlik({ context: 'c', exec: () => '{}' }).all('x'), [])
+  })
+  it('stops with an error when a next link repeats', () => {
+    const page = JSON.stringify({ data: [1], links: { next: { href: '/api/x?page=2' } } })
+    assert.throws(() => createQlik({ context: 'c', exec: () => page }).all('x'), /next-page link repeats after 2 pages/)
+  })
+  it('quotes a query value that holds a comma or a quote', () => {
+    assert.deepEqual(queryArgs({ limit: '5', sort: 'name,-id', q: 'a"b' }), [
+      '--query',
+      'limit=5',
+      '--query',
+      '"sort=name,-id"',
+      '--query',
+      '"q=a""b"',
+    ])
+  })
+  it('turns a next link into a path after /api/ and its query', () => {
+    assert.deepEqual(nextPage('https://tenant.example/api/scheduling/tasks?limit=100&page=2&sort=-updatedAt'), {
+      path: 'scheduling/tasks',
+      query: { limit: '100', page: '2', sort: '-updatedAt' },
+    })
+    assert.deepEqual(nextPage('v1/items?next=x%3D%3D'), { path: 'v1/items', query: { next: 'x==' } })
   })
 })

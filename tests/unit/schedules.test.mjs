@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { describe, it } from 'node:test'
-import { buildRows, fetchTenant, formatTable, LIMITS, rruleWords, taskFacts, when } from '../../src/schedules.mjs'
+import { createQlik } from '../../src/qlik.mjs'
+import { buildRows, fetchTenant, formatTable, PAGE, rruleWords, taskFacts, when } from '../../src/schedules.mjs'
 
 const tenant = JSON.parse(readFileSync(new URL('../fixtures/tenant.json', import.meta.url), 'utf8'))
 const rows = buildRows(tenant, { timeZone: 'UTC' })
@@ -137,20 +138,65 @@ describe('formatTable', () => {
 })
 
 describe('fetchTenant', () => {
-  it('makes four read-only calls, within the stated limits', () => {
+  it('reads four lists, every page of each, from the current APIs', () => {
     const calls = []
     const qlik = {
-      list: (...a) => {
-        calls.push(a.join(' '))
+      all: (path, query) => {
+        calls.push([path, query])
         return []
       },
     }
     fetchTenant(qlik)
+    const limit = String(PAGE)
     assert.deepEqual(calls, [
-      `space ls --limit ${LIMITS.spaces}`,
-      `item ls --resourceType app --limit ${LIMITS.apps}`,
-      `raw get v1/tasks --query limit=${LIMITS.tasks}`,
-      `raw get v1/reloads --query limit=${LIMITS.reloads}`,
+      ['v1/spaces', { limit }],
+      ['v1/items', { resourceType: 'app', limit }],
+      ['scheduling/tasks', { limit }],
+      ['v1/reloads', { limit }],
     ])
+  })
+
+  it('shows an app whose task is on the second page of tasks as scheduled', () => {
+    // Two pages of tasks, numbered the way the Scheduling Tasks API numbers them; the app's task is on page two.
+    const pages = {
+      'scheduling/tasks page=1': {
+        data: [
+          {
+            id: 't-1',
+            resourceId: 'app-other',
+            enabled: true,
+            start: { schedule: { recurrence: 'RRULE:FREQ=DAILY;BYHOUR=1;BYMINUTE=0' } },
+          },
+        ],
+        links: { next: { href: 'https://tenant.example/api/scheduling/tasks?limit=100&page=2&sort=-updatedAt' } },
+      },
+      'scheduling/tasks page=2': {
+        data: [
+          {
+            id: 't-2',
+            resourceId: 'app-late',
+            enabled: true,
+            start: { schedule: { recurrence: 'RRULE:FREQ=DAILY;BYHOUR=6;BYMINUTE=30' } },
+          },
+        ],
+        links: {},
+      },
+    }
+    const exec = (_bin, args) => {
+      const [, , , , path, , ...query] = args
+      if (path === 'v1/items')
+        return JSON.stringify({ data: [{ name: 'Late', resourceAttributes: { id: 'app-late' } }] })
+      if (path !== 'scheduling/tasks') return JSON.stringify({ data: [] })
+      const page = query.find((q) => q.startsWith('page=')) ?? 'page=1'
+      return JSON.stringify(pages[`${path} ${page}`])
+    }
+    const data = fetchTenant(createQlik({ context: 'demo', exec }))
+    assert.deepEqual(
+      data.tasks.map((t) => t.id),
+      ['t-1', 't-2'],
+    )
+    const [row] = buildRows(data, { timeZone: 'UTC' })
+    assert.equal(row.app, 'Late')
+    assert.equal(row.schedule, 'Daily 06:30')
   })
 })

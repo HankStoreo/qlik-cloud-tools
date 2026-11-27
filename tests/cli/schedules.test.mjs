@@ -33,7 +33,10 @@ describe('tools/schedules.mjs against a fake qlik-cli', () => {
   it('fails with one clear line when qlik-cli fails', () => {
     const r = run('--tenant', 'broken')
     assert.equal(r.status, 1)
-    assert.equal(r.stderr.trim(), 'schedules: qlik space ls --limit 100 failed: Error: context broken has no API key')
+    assert.equal(
+      r.stderr.trim(),
+      'schedules: qlik raw get v1/spaces --raw --query limit=100 failed: Error: context broken has no API key',
+    )
   })
   it('fails with one clear line for an unknown tenant', () => {
     const r = run('--tenant', 'nope')

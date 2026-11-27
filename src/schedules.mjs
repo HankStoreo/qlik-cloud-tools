@@ -2,9 +2,9 @@
 
 /**
  * @typedef {object} TenantData
- * @property {any[]} spaces From `qlik space ls`.
- * @property {any[]} items App items, from `qlik item ls --resourceType app`.
- * @property {any[]} tasks From GET /api/v1/tasks.
+ * @property {any[]} spaces From GET /api/v1/spaces.
+ * @property {any[]} items App items, from GET /api/v1/items?resourceType=app.
+ * @property {any[]} tasks From GET /api/scheduling/tasks, the Scheduling Tasks API.
  * @property {any[]} reloads From GET /api/v1/reloads, newest first.
  */
 
@@ -37,19 +37,20 @@
  * @property {TaskFacts[]} tasks
  */
 
-export const LIMITS = { spaces: 100, apps: 200, tasks: 100, reloads: 100 }
+// Records per page; every page is read, so this sets the number of calls, not how many records come back.
+export const PAGE = 100
 
 /**
- * Reads what the schedule view needs. Four read-only calls.
+ * Reads what the schedule view needs: four read-only lists, every page of each.
  * @param {import('./qlik.mjs').Qlik} qlik
  * @returns {TenantData}
  */
 export function fetchTenant(qlik) {
   return {
-    spaces: qlik.list('space', 'ls', '--limit', String(LIMITS.spaces)),
-    items: qlik.list('item', 'ls', '--resourceType', 'app', '--limit', String(LIMITS.apps)),
-    tasks: qlik.list('raw', 'get', 'v1/tasks', '--query', `limit=${LIMITS.tasks}`),
-    reloads: qlik.list('raw', 'get', 'v1/reloads', '--query', `limit=${LIMITS.reloads}`),
+    spaces: qlik.all('v1/spaces', { limit: String(PAGE) }),
+    items: qlik.all('v1/items', { resourceType: 'app', limit: String(PAGE) }),
+    tasks: qlik.all('scheduling/tasks', { limit: String(PAGE) }),
+    reloads: qlik.all('v1/reloads', { limit: String(PAGE) }),
   }
 }
 

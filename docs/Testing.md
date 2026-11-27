@@ -5,7 +5,7 @@
 | Tier | What | Where | Command |
 | --- | --- | --- | --- |
 | (a) Pure unit | Functions on invented data: RRULE wording, row building, table format, config validation | `tests/unit/` | `make test` |
-| (b) External calls faked | Commands run end to end against `tests/fixtures/fake-qlik.mjs`, a stand-in for qlik-cli that answers from `tenant.json` | `tests/cli/` | `make test` |
+| (b) External calls faked | Commands run end to end against `tests/fixtures/fake-qlik.mjs`, a stand-in for qlik-cli that answers from `tenant.json`, two records a page, so every list pages | `tests/cli/` | `make test` |
 | (c) Live tenant | Not in this repo. Run a tool against your own tenant by hand | | |
 
 - **Fixtures are invented.** `tests/fixtures/tenant.json` is made up; never replace it with an export from a real tenant.
