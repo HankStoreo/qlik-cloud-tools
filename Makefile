@@ -2,7 +2,7 @@
 .DEFAULT_GOAL := help
 COVERAGE := --experimental-test-coverage --test-coverage-lines=90 --test-coverage-branches=80 --test-coverage-include='src/**' --test-coverage-include='tooling/**'
 
-.PHONY: help setup dev demo fmt lint type test test-some check check-version check-links
+.PHONY: help setup dev demo media fmt lint type test test-some check check-version check-links
 
 help: ## List the commands
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  make %-14s %s\n", $$1, $$2}'
@@ -16,6 +16,9 @@ dev: ## No dev server: run a tool, e.g. node tools/schedules.mjs --help
 
 demo: ## Run schedules against the invented test tenant: no Qlik account needed
 	QCT_QLIK_BIN=tests/fixtures/fake-qlik.mjs node tools/schedules.mjs --config examples/demo.config.json
+
+media: ## Re-record the README demo video (needs vhs: brew install vhs); review every frame before committing
+	vhs docs/media/schedules.tape
 
 fmt: ## Format everything the repo owns
 	npx biome check --write .

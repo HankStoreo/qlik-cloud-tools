@@ -1,3 +1,5 @@
 * text=auto eol=lf
 package-lock.json linguist-generated=true -diff
 docs/media/*.png binary
+docs/media/*.gif binary
+docs/media/*.mp4 binary
